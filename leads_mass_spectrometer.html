@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LEADS Mission — LE-EI-TOF Mass Spectrometer</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f4f0;
+    --bg-tertiary: #efefeb;
+    --text-primary: #1a1a18;
+    --text-secondary: #5a5a56;
+    --text-tertiary: #8a8a84;
+    --border: rgba(0,0,0,0.12);
+    --border-md: rgba(0,0,0,0.22);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #1c1c1a;
+      --bg-secondary: #252522;
+      --bg-tertiary: #2e2e2b;
+      --text-primary: #e8e6de;
+      --text-secondary: #9a9890;
+      --text-tertiary: #666460;
+      --border: rgba(255,255,255,0.10);
+      --border-md: rgba(255,255,255,0.18);
+    }
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg-primary);
+    border-bottom: 0.5px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 52px;
+  }
+  .nav-brand {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .nav-badge {
+    font-size: 10px;
+    background: #FAEEDA;
+    color: #633806;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  @media (prefers-color-scheme: dark) {
+    .nav-badge { background: #412402; color: #FAC775; }
+  }
+  .nav-links {
+    display: flex;
+    gap: 24px;
+    list-style: none;
+  }
+  .nav-links a {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .nav-links a:hover { color: var(--text-primary); }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 56px 32px 48px;
+    max-width: 900px;
+    margin: 0 auto;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .hero-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.25;
+    margin-bottom: 14px;
+  }
+  .hero p {
+    font-size: 15px;
+    color: var(--text-secondary);
+    max-width: 620px;
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .hero-stat { }
+  .hero-stat-val {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text-primary);
+    display: block;
+  }
+  .hero-stat-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: block;
+    margin-top: 1px;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 32px 80px;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  /* ── EXPLORER ── */
+  .explorer {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+    margin-bottom: 56px;
+    align-items: start;
+  }
+
+  @media (max-width: 640px) {
+    .explorer { grid-template-columns: 1fr; }
+    nav { padding: 0 16px; }
+    .hero { padding: 36px 16px 32px; }
+    .main { padding: 24px 16px 60px; }
+    .hero-stats { gap: 20px; }
+  }
+
+  .diagram-wrap {
+    background: var(--bg-secondary);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 12px;
+  }
+  .diagram-hint {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  /* SVG subsystem blocks */
+  .sub-block {
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .sub-block:hover rect, .sub-block:hover ellipse { opacity: 0.8; }
+  .sub-block.active rect { stroke-width: 2 !important; }
+
+  /* Ion path animation */
+  @keyframes ion-march {
+    from { stroke-dashoffset: 40; }
+    to   { stroke-dashoffset: 0; }
+  }
+  .ion-seg {
+    stroke-dasharray: 6 4;
+    animation: ion-march 1.1s linear infinite;
+    pointer-events: none;
+  }
+
+  /* ── DETAIL PANEL ── */
+  .detail-panel {
+    background: var(--bg-secondary);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    min-height: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .detail-badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .detail-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-top: 2px;
+  }
+  .detail-body {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    flex: 1;
+  }
+  .detail-body em {
+    font-style: normal;
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  .detail-specs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    border-top: 0.5px solid var(--border);
+    padding-top: 14px;
+  }
+  .spec-card {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 8px 10px;
+  }
+  .spec-card-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    display: block;
+    margin-bottom: 2px;
+  }
+  .spec-card-val {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .detail-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 8px;
+  }
+  .detail-empty-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .detail-empty p {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    text-align: center;
+  }
+
+  /* ── ION PATH EXPLAINER ── */
+  .ion-path-section {
+    margin-bottom: 56px;
+  }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .step {
+    background: var(--bg-primary);
+    padding: 16px 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .step:hover { background: var(--bg-secondary); }
+  .step-num {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .step-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 3px;
+  }
+  .step-desc {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .step-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 4px;
+    vertical-align: middle;
+    margin-bottom: 1px;
+  }
+
+  /* ── SENSITIVITY TABLE ── */
+  .sens-section { margin-bottom: 56px; }
+  .sens-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+  .sens-card {
+    background: var(--bg-secondary);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+  }
+  .sens-card-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .sens-card-val {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .sens-card-sub {
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  /* ── SPECTRUM VIZ ── */
+  .spectrum-section { margin-bottom: 56px; }
+  .spectrum-wrap {
+    background: var(--bg-secondary);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+  }
+  .spectrum-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .spectrum-label-row span {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .spectrum-canvas-wrap {
+    position: relative;
+    height: 180px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 0.5px solid var(--border);
+    padding: 24px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  footer p {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+  footer a {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+  footer a:hover { color: var(--text-primary); }
+
+  /* ── MISSION LINK SECTION ── */
+  .mission-context {
+    background: var(--bg-secondary);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 40px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 640px) {
+    .mission-context { grid-template-columns: 1fr; }
+  }
+  .ctx-item-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .ctx-item-val {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 3px;
+  }
+  .ctx-item-sub {
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-brand">
+    LEADS Mission
+    <span class="nav-badge">DTU Space · Spring 2026</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#explorer">Explorer</a></li>
+    <li><a href="#ion-path">Ion path</a></li>
+    <li><a href="#sensitivity">Performance</a></li>
+    <li><a href="#spectrum">Spectrum</a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <p class="hero-label">Payload · Chapter 10.1</p>
+  <h1>LE-EI-TOF Mass Spectrometer</h1>
+  <p>Laser Extraction Electron Ionisation Time-of-Flight instrument designed for in-situ quantification of ³He in lunar regolith at Oceanus Procellarum. A hybrid architecture combining LASMA-LR laser extraction with NIM/JUICE-heritage reflectron TOF mass analysis.</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <span class="hero-stat-val">~5.5 kg</span>
+      <span class="hero-stat-label">total instrument mass</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-val">~10 W</span>
+      <span class="hero-stat-label">science-mode power</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-val">R &gt; 1000</span>
+      <span class="hero-stat-label">mass resolving power at m/z = 3</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-val">1 ppb</span>
+      <span class="hero-stat-label">minimum detectable ³He</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-val">2.8 h</span>
+      <span class="hero-stat-label">per sample measurement</span>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Mission context strip -->
+  <div class="mission-context" id="explorer">
+    <div>
+      <span class="ctx-item-label">Mission objective</span>
+      <span class="ctx-item-val">COP-0-1</span>
+      <span class="ctx-item-sub">Map spatial distribution of ³He across Rima Galilaei, Rima Suess, and Rima Marius</span>
+    </div>
+    <div>
+      <span class="ctx-item-label">Upstream dependency</span>
+      <span class="ctx-item-val">Sample system + XRF</span>
+      <span class="ctx-item-sub">XRF detects high-Ti sites → rover stops → arm delivers 1–5 g regolith to carousel</span>
+    </div>
+    <div>
+      <span class="ctx-item-label">Downstream interface</span>
+      <span class="ctx-item-val">OBC + Comms</span>
+      <span class="ctx-item-sub">15 kB/s science data → OBC buffer → 512 Mb/lunar-day downlink allocation</span>
+    </div>
+  </div>
+
+  <p class="section-label">Subsystem explorer</p>
+
+  <div class="explorer">
+    <!-- DIAGRAM -->
+    <div>
+      <div class="diagram-wrap">
+        <svg width="100%" viewBox="0 0 256 490" id="main-svg">
+          <defs>
+            <marker id="darr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </marker>
+          </defs>
+
+          <!-- top label -->
+          <text x="128" y="12" text-anchor="middle" style="font-size:9px;fill:#8a8a84">sample arm delivery</text>
+          <line x1="128" y1="16" x2="128" y2="30" stroke="#8a8a84" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#darr)"/>
+
+          <!-- S1: Laser -->
+          <g class="sub-block" id="sb1" onclick="selectSub(1)">
+            <rect x="44" y="32" width="168" height="50" rx="8" fill="#FAEEDA" stroke="#BA7517" stroke-width="0.8"/>
+            <text x="128" y="53" text-anchor="middle" style="font-size:11px;font-weight:600;fill:#633806">Laser optical module</text>
+            <text x="128" y="69" text-anchor="middle" style="font-size:9px;fill:#854F0B">Nd:YAG 1064 nm · 15 mJ/pulse · 0.1 Hz</text>
+          </g>
+
+          <!-- connector -->
+          <line x1="128" y1="82" x2="128" y2="102" stroke="#8a8a84" stroke-width="0.8" marker-end="url(#darr)"/>
+          <text x="136" y="96" style="font-size:9px;fill:#BA7517">laser pulse</text>
+
+          <!-- S2: Carousel -->
+          <g class="sub-block" id="sb2" onclick="selectSub(2)">
+            <rect x="36" y="104" width="184" height="52" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.8"/>
+            <text x="128" y="125" text-anchor="middle" style="font-size:11px;font-weight:600;fill:#085041">Sample carousel</text>
+            <text x="128" y="141" text-anchor="middle" style="font-size:9px;fill:#0F6E56">11 positions + 1 ref · single-use · hermetic</text>
+            <circle cx="198" cy="124" r="10" fill="none" stroke="#1D9E75" stroke-width="0.8" stroke-dasharray="3 2"/>
+            <circle cx="198" cy="114" r="1.8" fill="#1D9E75"/>
+            <circle cx="206" cy="118" r="1.8" fill="#1D9E75"/>
+            <circle cx="208" cy="127" r="1.8" fill="#1D9E75"/>
+            <circle cx="204" cy="135" r="1.8" fill="#1D9E75"/>
+            <circle cx="195" cy="134" r="1.8" fill="#1D9E75"/>
+          </g>
+
+          <line x1="128" y1="156" x2="128" y2="176" stroke="#8a8a84" stroke-width="0.8" marker-end="url(#darr)"/>
+          <text x="136" y="170" style="font-size:9px;fill:#BA7517">evolved gas</text>
+
+          <!-- S3: Cold trap -->
+          <g class="sub-block" id="sb3" onclick="selectSub(3)">
+            <rect x="36" y="178" width="184" height="50" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.8"/>
+            <text x="128" y="199" text-anchor="middle" style="font-size:11px;font-weight:600;fill:#0C447C">Cold-trap pre-filter</text>
+            <text x="128" y="215" text-anchor="middle" style="font-size:9px;fill:#185FA5">−80 °C Peltier · blocks H₂O, HD⁺ · ~2 W</text>
+          </g>
+
+          <line x1="128" y1="228" x2="128" y2="248" stroke="#8a8a84" stroke-width="0.8" marker-end="url(#darr)"/>
+          <text x="136" y="242" style="font-size:9px;fill:#BA7517">³He + noble gas</text>
+
+          <!-- S4: EI source -->
+          <g class="sub-block" id="sb4" onclick="selectSub(4)">
+            <rect x="36" y="250" width="184" height="50" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="0.8"/>
+            <text x="128" y="271" text-anchor="middle" style="font-size:11px;font-weight:600;fill:#712B13">EI ion source</text>
+            <text x="128" y="287" text-anchor="middle" style="font-size:9px;fill:#993C1D">70 eV electrons · NIM/JUICE heritage</text>
+          </g>
+
+          <line x1="100" y1="300" x2="72" y2="322" stroke="#8a8a84" stroke-width="0.8" marker-end="url(#darr)"/>
+          <line x1="168" y1="300" x2="210" y2="315" stroke="#8a8a84" stroke-width="0.5" stroke-dasharray="3 2" marker-end="url(#darr)"/>
+          <text x="200" y="310" style="font-size:8px;fill:#8a8a84">e⁻ gun</text>
+
+          <!-- S5: TOF -->
+          <g class="sub-block" id="sb5" onclick="selectSub(5)">
+            <rect x="10" y="324" width="180" height="52" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.8"/>
+            <text x="100" y="345" text-anchor="middle" style="font-size:11px;font-weight:600;fill:#3C3489">Reflectron TOF analyser</text>
+            <text x="100" y="361" text-anchor="middle" style="font-size:9px;fill:#534AB7">R &gt; 1000 · −5 kV HVPS · JUICE heritage</text>
+            <line x1="20" y1="334" x2="20" y2="368" stroke="#7F77DD" stroke-width="2.5" stroke-linecap="round"/>
+          </g>
+
+          <line x1="100" y1="376" x2="100" y2="396" stroke="#8a8a84" stroke-width="0.8" marker-end="url(#darr)"/>
+
+          <!-- S6: MCP -->
+          <g class="sub-block" id="sb6" onclick="selectSub(6)">
+            <rect x="10" y="398" width="180" height="50" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.8"/>
+            <text x="100" y="419" text-anchor="middle" style="font-size:11px;font-weight:600;fill:#2C2C2A">MCP detector + DAQ</text>
+            <text x="100" y="435" text-anchor="middle" style="font-size:9px;fill:#5F5E5A">10-bit ADC · 15 kB/s science · OBC</text>
+            <line x1="20" y1="408" x2="20" y2="440" stroke="#888780" stroke-width="2" stroke-linecap="round"/>
+            <line x1="26" y1="408" x2="26" y2="440" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
+          </g>
+
+          <!-- OBC output -->
+          <line x1="192" y1="423" x2="246" y2="423" stroke="#8a8a84" stroke-width="0.8" marker-end="url(#darr)"/>
+          <text x="219" y="418" text-anchor="middle" style="font-size:8px;fill:#8a8a84">to OBC</text>
+
+          <!-- Ion path animated overlay -->
+          <g id="ion-overlay" style="pointer-events:none">
+            <line class="ion-seg" x1="128" y1="82" x2="128" y2="102" stroke="#EF9F27" stroke-width="2"/>
+            <line class="ion-seg" x1="128" y1="156" x2="128" y2="176" stroke="#EF9F27" stroke-width="2"/>
+            <line class="ion-seg" x1="128" y1="228" x2="128" y2="248" stroke="#EF9F27" stroke-width="2"/>
+            <line class="ion-seg" x1="100" y1="300" x2="72" y2="322" stroke="#EF9F27" stroke-width="2"/>
+            <line class="ion-seg" x1="100" y1="376" x2="100" y2="396" stroke="#EF9F27" stroke-width="2"/>
+          </g>
+
+          <text x="128" y="478" text-anchor="middle" style="font-size:9px;fill:#8a8a84">amber = ³He⁺ ion path</text>
+        </svg>
+        <p class="diagram-hint">click any block to explore</p>
+      </div>
+    </div>
+
+    <!-- DETAIL PANEL -->
+    <div class="detail-panel" id="detail-panel">
+      <div class="detail-empty">
+        <div class="detail-empty-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="6" stroke="#8a8a84" stroke-width="1"/>
+            <line x1="8" y1="5" x2="8" y2="9" stroke="#8a8a84" stroke-width="1.2" stroke-linecap="round"/>
+            <circle cx="8" cy="11" r="0.7" fill="#8a8a84"/>
+          </svg>
+        </div>
+        <p>Select a subsystem on the<br>diagram to explore it</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ION PATH STEPS -->
+  <div class="ion-path-section" id="ion-path">
+    <p class="section-label">Ion measurement chain</p>
+    <div class="steps">
+      <div class="step">
+        <span class="step-num">step 1</span>
+        <span class="step-name"><span class="step-dot" style="background:#BA7517"></span>Collection</span>
+        <span class="step-desc">Regolith scooped by rover arm, 1–5 g deposited into carousel position</span>
+      </div>
+      <div class="step">
+        <span class="step-num">step 2</span>
+        <span class="step-name"><span class="step-dot" style="background:#EF9F27"></span>Extraction</span>
+        <span class="step-desc">Laser heats grain rims at 0.1 Hz, releasing solar-wind-implanted ³He</span>
+      </div>
+      <div class="step">
+        <span class="step-num">step 3</span>
+        <span class="step-name"><span class="step-dot" style="background:#378ADD"></span>Filtration</span>
+        <span class="step-desc">Cold trap at −80 °C condenses HD⁺ precursors and water; He passes through</span>
+      </div>
+      <div class="step">
+        <span class="step-num">step 4</span>
+        <span class="step-name"><span class="step-dot" style="background:#D85A30"></span>Ionisation</span>
+        <span class="step-desc">70 eV electrons convert neutral ³He into ³He⁺; efficiency ~5–15%</span>
+      </div>
+      <div class="step">
+        <span class="step-num">step 5</span>
+        <span class="step-name"><span class="step-dot" style="background:#534AB7"></span>Separation</span>
+        <span class="step-desc">Reflectron TOF separates ions by mass; R &gt; 1000 resolves ³He⁺ from HD⁺</span>
+      </div>
+      <div class="step">
+        <span class="step-num">step 6</span>
+        <span class="step-name"><span class="step-dot" style="background:#5F5E5A"></span>Detection</span>
+        <span class="step-desc">MCP detector and ADC build histogram; ~1700 shots for 100-ion precision</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SENSITIVITY BUDGET -->
+  <div class="sens-section" id="sensitivity">
+    <p class="section-label">Sensitivity budget — 10 ppb ³He, 10 ng ablated</p>
+    <div class="sens-grid">
+      <div class="sens-card">
+        <span class="sens-card-label">Atoms in ablated mass</span>
+        <span class="sens-card-val">2.0 × 10⁷</span>
+        <span class="sens-card-sub">from 10 ng at 10 ppb</span>
+      </div>
+      <div class="sens-card">
+        <span class="sens-card-label">Released by laser</span>
+        <span class="sens-card-val">6.0 × 10⁶</span>
+        <span class="sens-card-sub">≥ 30% release efficiency</span>
+      </div>
+      <div class="sens-card">
+        <span class="sens-card-label">Ionised in EI source</span>
+        <span class="sens-card-val">6.0 × 10⁵</span>
+        <span class="sens-card-sub">~10% ionisation efficiency</span>
+      </div>
+      <div class="sens-card">
+        <span class="sens-card-label">Detected at MCP</span>
+        <span class="sens-card-val">~0.06 ions/shot</span>
+        <span class="sens-card-sub">20% detector efficiency</span>
+      </div>
+      <div class="sens-card">
+        <span class="sens-card-label">Shots for 100-ion precision</span>
+        <span class="sens-card-val">~1700 shots</span>
+        <span class="sens-card-sub">at 0.1 Hz rep rate</span>
+      </div>
+      <div class="sens-card">
+        <span class="sens-card-label">Time per sample</span>
+        <span class="sens-card-val">~2.8 hours</span>
+        <span class="sens-card-sub">feasible within one lunar day</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPECTRUM VIZ -->
+  <div class="spectrum-section" id="spectrum">
+    <p class="section-label">Output mass spectrum — resolving ³He⁺ from HD⁺</p>
+    <div class="spectrum-wrap">
+      <div class="spectrum-label-row">
+        <span>Simulated spectrum near m/z = 3</span>
+        <span style="color:#BA7517;font-weight:500">Δm = 0.0053 u separation</span>
+      </div>
+      <div class="spectrum-canvas-wrap">
+        <canvas id="spec-canvas" width="820" height="180" style="width:100%;height:100%"></canvas>
+      </div>
+      <div style="display:flex;gap:20px;margin-top:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:2px;background:#BA7517"></div><span style="font-size:11px;color:#8a8a84">³He⁺ (m/z = 3.0154 u)</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:2px;background:#378ADD"></div><span style="font-size:11px;color:#8a8a84">HD⁺ (m/z = 3.0214 u)</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:2px;background:#97C459"></div><span style="font-size:11px;color:#8a8a84">⁴He⁺ (m/z = 4.0020 u)</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:2px;background:#B4B2A9"></div><span style="font-size:11px;color:#8a8a84">noise floor</span></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<footer>
+  <p>LEADS Mission · Space Systems Engineering 30310 · DTU Space, Spring 2026</p>
+  <div style="display:flex;gap:20px">
+    <a href="#explorer">Back to top</a>
+  </div>
+</footer>
+
+<script>
+const subsystems = {
+  1: {
+    badge: "Extraction", badgeBg: "#FAEEDA", badgeColor: "#633806",
+    title: "Laser optical module",
+    body: `A passively Q-switched <em>Nd:YAG laser</em> fires at <em>1064 nm</em> with 15 mJ per pulse and a 7 ns pulse duration, operating at <em>0.1 Hz</em>. The beam is deliberately defocused to a ~200 µm spot on the sample surface. This low-fluence thermal extraction mode preferentially heats the outermost grain rims where solar-wind-implanted ³He is trapped, releasing the gas without fully vaporising the mineral matrix.
+    <br><br>This is the key design choice that distinguishes LE-EI-TOF from direct laser ablation (LASMA-LR), which suffered from low noble gas release efficiency (&lt;5%) and unverified HD⁺ rejection. Expert consultation with Dr. Rico Fausch (University of Bern) confirmed that the 1064 nm IR wavelength is appropriate for thermal extraction mode, despite UV wavelengths being more efficient for direct ionisation.`,
+    specs: [["Wavelength","1064 nm"],["Pulse energy","15 mJ"],["Pulse duration","7 ns"],["Rep rate","0.1 Hz"],["Spot size","~200 µm"],["Peak power","~2.14 MW"]]
+  },
+  2: {
+    badge: "Sample handling", badgeBg: "#E1F5EE", badgeColor: "#085041",
+    title: "Sample carousel",
+    body: `A rotating carousel holds <em>11 sample positions</em> plus one built-in reference standard. Regolith of 1–5 g is deposited by the rover's sampling arm through a 10×10 cm inlet. Once loaded, each position is <em>hermetically sealed</em> in a ~10 cm³ volume to capture all evolved gas during laser extraction.
+    <br><br>Positions are <em>single-use</em> — this is a critical mission constraint. With ~4 km average spacing between XRF-triggered stops and ~2000 km planned traverse, the 11-sample limit means mass spectrometry targets must be selected carefully using XRF data as a pre-screen. The reference standard enables in-flight calibration of the mass scale.`,
+    specs: [["Sample positions","11 + 1 ref"],["Sample mass","1–5 g"],["Enclosure vol","~10 cm³"],["Positions","Single-use"],["Inlet size","10×10 cm"],["Interface","Sample arm"]]
+  },
+  3: {
+    badge: "Interference rejection", badgeBg: "#E6F1FB", badgeColor: "#0C447C",
+    title: "Cold-trap pre-filter",
+    body: `A <em>Peltier cooler</em> chills a condenser surface to <em>−80 °C</em> at ~2 W power. H₂O, CO₂, and all H-bearing molecular species condense and are trapped before the gas stream reaches the ion source. This is critical because <em>HD⁺</em> is the primary isobaric interference at m/z = 3 — it sits only 0.0053 u away from ³He⁺.
+    <br><br>By depleting the HD⁺ precursor inventory by a factor of <em>10²–10³</em> before ionisation, the cold trap dramatically reduces the background that would otherwise obscure the ³He signal. Helium and other noble gases pass through unaffected since they do not condense at −80 °C. Without this stage, achieving R > 1000 resolution alone would be insufficient.`,
+    specs: [["Temperature","−80 °C"],["Power","~2 W"],["Cooling method","Peltier"],["HD⁺ rejection","10²–10³×"],["He transmission","~100%"],["Position","Pre-EI source"]]
+  },
+  4: {
+    badge: "Ionisation", badgeBg: "#FAECE7", badgeColor: "#712B13",
+    title: "EI ion source",
+    body: `An <em>electron ionisation (EI)</em> source bombards the incoming neutral gas with <em>70 eV electrons</em> emitted from a heated filament. At this energy, a collision ejects one of the two electrons from a neutral ³He atom, creating ³He⁺. The architecture is derived from the <em>NIM instrument</em> with JUICE mission heritage.
+    <br><br>Ionisation efficiency for helium is low at approximately <em>5–15%</em>, which is why ~1700 laser shots are needed to accumulate 100 detected ions at 10 ppb concentration. Multiple passes through the ion source region improve the overall efficiency. The supply bus runs at +27 V with ±100 V LVPS for the electron optics and HVPS up to −5 kV for the TOF analyser.`,
+    specs: [["Electron energy","70 eV"],["He ionisation","5–15%"],["Supply bus","+27 V"],["LVPS","±100 V"],["Heritage","NIM / JUICE"],["Mode","Multiple passes"]]
+  },
+  5: {
+    badge: "Mass separation", badgeBg: "#EEEDFE", badgeColor: "#3C3489",
+    title: "Reflectron TOF analyser",
+    body: `Ions accelerated from the EI source enter a <em>field-free drift tube</em>. Lighter ions travel faster and arrive at the detector sooner — arrival time directly encodes m/z. The <em>reflectron mirror</em> at the far end reflects the ion packet back toward the detector, correcting for small kinetic energy spreads within the packet.
+    <br><br>This correction enables <em>R > 1000</em> at m/z = 3, resolving the 0.0053 u gap between ³He⁺ and HD⁺ — the fundamental physics driver for this design choice. The drift tube dimensions are 290 × 176 × 173 mm. High voltage up to <em>−5 kV</em> is applied to the reflectron field. The minimum required resolving power was derived from R ≥ m/Δm = 3.0160/0.0053 ≥ 564, with a design margin to R ≥ 700.`,
+    specs: [["Mass resolution","R > 1000"],["Mass range","m/z 1–1000"],["Dimensions","290×176×173 mm"],["HVPS","up to −5 kV"],["Dynamic range","≤ 10⁶"],["Heritage","NIM / JUICE"]]
+  },
+  6: {
+    badge: "Detection & readout", badgeBg: "#F1EFE8", badgeColor: "#2C2C2A",
+    title: "MCP detector + DAQ",
+    body: `A <em>chevron-stack microchannel plate (MCP)</em> detector converts each arriving ion into an electron cascade of ~10⁶ electrons. A <em>10-bit ADC</em> samples the output at high frequency, time-stamping each pulse relative to the laser fire event.
+    <br><br>The firmware co-adds 100 shots to produce one spectrum at 10 Hz effective rate; ~<em>1700 co-added shots</em> are needed per sample at 0.1 Hz cadence — giving ~2.8 hours per sample. Spectra are stored on an onboard FPGA-managed flash drive with lossless compression (factor 6–10x) before downlink. Science data rate is <em>15 kB/s</em>; housekeeping is 100 bit/s. Total data per sample cycle ~150 MB before compression.`,
+    specs: [["Detector","MCP chevron stack"],["ADC","10-bit"],["Science rate","15 kB/s"],["HK rate","100 bit/s"],["Compression","6–10× lossless"],["Time/sample","~2.8 h"]]
+  }
+};
+
+let activeSub = null;
+
+function selectSub(n) {
+  if (activeSub) {
+    const prev = document.getElementById('sb' + activeSub);
+    if (prev) prev.classList.remove('active');
+  }
+  activeSub = n;
+  const el = document.getElementById('sb' + n);
+  if (el) el.classList.add('active');
+
+  const d = subsystems[n];
+  document.getElementById('detail-panel').innerHTML = `
+    <div>
+      <span class="detail-badge" style="background:${d.badgeBg};color:${d.badgeColor}">${d.badge}</span>
+      <div class="detail-title" style="margin-top:6px">${d.title}</div>
+    </div>
+    <div class="detail-body">${d.body}</div>
+    <div class="detail-specs">
+      ${d.specs.map(s => `<div class="spec-card"><span class="spec-card-label">${s[0]}</span><span class="spec-card-val">${s[1]}</span></div>`).join('')}
+    </div>
+  `;
+}
+
+function drawSpectrum() {
+  const canvas = document.getElementById('spec-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  ctx.clearRect(0, 0, W, H);
+
+  const bg = dark ? '#252522' : '#f5f4f0';
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  const axisColor = dark ? '#666460' : '#b4b2a9';
+  const textColor = dark ? '#9a9890' : '#5a5a56';
+
+  const padL = 48, padR = 20, padT = 20, padB = 32;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  ctx.strokeStyle = axisColor;
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT);
+  ctx.lineTo(padL, padT + plotH);
+  ctx.lineTo(padL + plotW, padT + plotH);
+  ctx.stroke();
+
+  ctx.fillStyle = textColor;
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('m/z (arrival time proxy)', padL + plotW / 2, H - 4);
+
+  ctx.save();
+  ctx.translate(12, padT + plotH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('ion counts', 0, 0);
+  ctx.restore();
+
+  function gaussian(x, mu, sigma) {
+    return Math.exp(-0.5 * Math.pow((x - mu) / sigma, 2));
+  }
+
+  const peaks = [
+    { mu: 0.18, sigma: 0.018, height: 0.08, color: '#B4B2A9', label: 'H₂⁺' },
+    { mu: 0.38, sigma: 0.016, height: 0.12, color: '#B4B2A9', label: 'H₃⁺' },
+    { mu: 0.52, sigma: 0.014, height: 0.62, color: '#378ADD', label: 'HD⁺' },
+    { mu: 0.60, sigma: 0.014, height: 1.00, color: '#BA7517', label: '³He⁺' },
+    { mu: 0.80, sigma: 0.016, height: 0.45, color: '#97C459', label: '⁴He⁺' },
+  ];
+
+  const steps = 600;
+  peaks.forEach(pk => {
+    ctx.beginPath();
+    ctx.fillStyle = pk.color + (dark ? 'cc' : 'aa');
+    for (let i = 0; i <= steps; i++) {
+      const x = i / steps;
+      const y = gaussian(x, pk.mu, pk.sigma) * pk.height;
+      const cx = padL + x * plotW;
+      const cy = padT + plotH - y * plotH;
+      if (i === 0) ctx.moveTo(cx, padT + plotH);
+      ctx.lineTo(cx, cy);
+    }
+    ctx.lineTo(padL + plotW, padT + plotH);
+    ctx.closePath();
+    ctx.fill();
+  });
+
+  peaks.forEach(pk => {
+    const cx = padL + pk.mu * plotW;
+    const cy = padT + plotH - pk.height * plotH - 10;
+    ctx.fillStyle = textColor;
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    if (cy > padT + 8) ctx.fillText(pk.label, cx, cy);
+  });
+
+  ctx.strokeStyle = '#BA7517';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([3, 2]);
+  const x1 = padL + 0.52 * plotW, x2 = padL + 0.60 * plotW;
+  const bracketY = padT + plotH - 0.7 * plotH;
+  ctx.beginPath();
+  ctx.moveTo(x1, bracketY - 8);
+  ctx.lineTo(x1, bracketY - 14);
+  ctx.lineTo(x2, bracketY - 14);
+  ctx.lineTo(x2, bracketY - 8);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#BA7517';
+  ctx.font = '9px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Δm = 0.0053 u', (x1 + x2) / 2, bracketY - 17);
+  ctx.fillText('R > 1000 resolves', (x1 + x2) / 2, bracketY - 27);
+}
+
+window.addEventListener('load', drawSpectrum);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawSpectrum);
+window.addEventListener('resize', drawSpectrum);
+</script>
+</body>
+</html>
